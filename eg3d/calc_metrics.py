@@ -81,9 +81,7 @@ def subprocess_fn(rank, args, temp_dir):
 def parse_comma_separated_list(s):
     if isinstance(s, list):
         return s
-    if s is None or s.lower() == 'none' or s == '':
-        return []
-    return s.split(',')
+    return [] if s is None or s.lower() == 'none' or s == '' else s.split(',')
 
 #----------------------------------------------------------------------------
 
@@ -95,7 +93,6 @@ def parse_comma_separated_list(s):
 @click.option('--mirror', help='Enable dataset x-flips  [default: look up]', type=bool, metavar='BOOL')
 @click.option('--gpus', help='Number of GPUs to use', type=int, default=1, metavar='INT', show_default=True)
 @click.option('--verbose', help='Print optional information', type=bool, default=True, metavar='BOOL', show_default=True)
-
 def calc_metrics(ctx, network_pkl, metrics, data, mirror, gpus, verbose):
     """Calculate quality metrics for previous training run or pretrained network pickle.
 
@@ -134,7 +131,7 @@ def calc_metrics(ctx, network_pkl, metrics, data, mirror, gpus, verbose):
     args = dnnlib.EasyDict(metrics=metrics, num_gpus=gpus, network_pkl=network_pkl, verbose=verbose)
     if not all(metric_main.is_valid_metric(metric) for metric in args.metrics):
         ctx.fail('\n'.join(['--metrics can only contain the following values:'] + metric_main.list_valid_metrics()))
-    if not args.num_gpus >= 1:
+    if args.num_gpus < 1:
         ctx.fail('--gpus must be at least 1')
 
     # Load network.

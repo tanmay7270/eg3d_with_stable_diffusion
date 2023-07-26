@@ -47,7 +47,7 @@ if __name__ == '__main__':
     if os.path.isfile(dataset_file): # If dataset.json present, mirror images and mirror labels.
         with open(dataset_file, "r") as f:
             dataset = json.load(f)
-        
+
         max_images = args.max_images if args.max_images is not None else len(dataset['labels'])
         for i, example in tqdm(enumerate(dataset['labels']), total=max_images):
             if (max_images is not None and i >= max_images): break
@@ -67,10 +67,10 @@ if __name__ == '__main__':
             flipped_pose = flip_yaw(pose)
             label = np.concatenate([flipped_pose.reshape(-1), intrinsics.reshape(-1)]).tolist()
             base, ext = filename.split('.')[0], '.' + filename.split('.')[1]
-            flipped_filename = base + '_mirror' + ext
+            flipped_filename = f'{base}_mirror{ext}'
             dataset["labels"].append([flipped_filename, label])
             flipped_img.save(os.path.join(dest, flipped_filename), compress_level=COMPRESS_LEVEL)
-            
+
         with open(os.path.join(dest, 'dataset.json'), "w") as f:
             json.dump(dataset, f)
 
@@ -83,8 +83,8 @@ if __name__ == '__main__':
                 if args.dest is not None: # skip saving originals if dest==source
                     os.makedirs(os.path.dirname(os.path.join(dest, filename)), exist_ok=True)
                     img.save(os.path.join(dest, filename), compress_level=COMPRESS_LEVEL)
-                
+
                 flipped_img = ImageOps.mirror(img)
                 base, ext = os.path.splitext(filename)
-                flipped_filename = base + '_mirror' + ext
+                flipped_filename = f'{base}_mirror{ext}'
                 flipped_img.save(os.path.join(dest, flipped_filename), compress_level=COMPRESS_LEVEL)

@@ -37,9 +37,8 @@ class CaptureWidget:
             file_id = 0
             for entry in os.scandir(self.path):
                 if entry.is_file():
-                    match = re.fullmatch(r'(\d+).*', entry.name)
-                    if match:
-                        file_id = max(file_id, int(match.group(1)) + 1)
+                    if match := re.fullmatch(r'(\d+).*', entry.name):
+                        file_id = max(file_id, int(match[1]) + 1)
             if channels == 1:
                 pil_image = PIL.Image.fromarray(image[:, :, 0], 'L')
             else:

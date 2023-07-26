@@ -26,8 +26,7 @@ def transform_vectors(matrix: torch.Tensor, vectors4: torch.Tensor) -> torch.Ten
     """
     Left-multiplies MxM @ NxM. Returns NxM.
     """
-    res = torch.matmul(vectors4, matrix.T)
-    return res
+    return torch.matmul(vectors4, matrix.T)
 
 
 def normalize_vecs(vectors: torch.Tensor) -> torch.Tensor:
@@ -109,10 +108,7 @@ def linspace(start: torch.Tensor, stop: torch.Tensor, num: int):
     # reshape the 'steps' tensor to [-1, *([1]*start.ndim)] to allow for broadcastings
     # - using 'steps.reshape([-1, *([1]*start.ndim)])' would be nice here but torchscript
     #   "cannot statically infer the expected size of a list in this contex", hence the code below
-    for i in range(start.ndim):
+    for _ in range(start.ndim):
         steps = steps.unsqueeze(-1)
 
-    # the output starts at 'start' and increments until 'stop' in each dimension
-    out = start[None] + steps * (stop - start)[None]
-
-    return out
+    return start[None] + steps * (stop - start)[None]

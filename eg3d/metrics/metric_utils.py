@@ -36,7 +36,7 @@ class MetricOptions:
 
 #----------------------------------------------------------------------------
 
-_feature_detector_cache = dict()
+_feature_detector_cache = {}
 
 def get_feature_detector_name(url):
     return os.path.splitext(url.split('/')[-1])[0]
@@ -65,8 +65,7 @@ def iterate_random_labels(opts, batch_size):
         dataset = dnnlib.util.construct_class_by_name(**opts.dataset_kwargs)
         while True:
             c = [dataset.get_label(np.random.randint(len(dataset))) for _i in range(batch_size)]
-            c = torch.from_numpy(np.stack(c)).pin_memory().to(opts.device)
-            yield c
+            yield torch.from_numpy(np.stack(c)).pin_memory().to(opts.device)
 
 #----------------------------------------------------------------------------
 
@@ -207,7 +206,7 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
         args = dict(dataset_kwargs=opts.dataset_kwargs, detector_url=detector_url, detector_kwargs=detector_kwargs, stats_kwargs=stats_kwargs)
         md5 = hashlib.md5(repr(sorted(args.items())).encode('utf-8'))
         cache_tag = f'{dataset.name}-{get_feature_detector_name(detector_url)}-{md5.hexdigest()}'
-        cache_file = dnnlib.make_cache_dir_path('gan-metrics', cache_tag + '.pkl')
+        cache_file = dnnlib.make_cache_dir_path('gan-metrics', f'{cache_tag}.pkl')
 
         # Check if the file exists (all processes must agree).
         flag = os.path.isfile(cache_file) if opts.rank == 0 else False
@@ -240,7 +239,7 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
     # Save to cache.
     if cache_file is not None and opts.rank == 0:
         os.makedirs(os.path.dirname(cache_file), exist_ok=True)
-        temp_file = cache_file + '.' + uuid.uuid4().hex
+        temp_file = f'{cache_file}.{uuid.uuid4().hex}'
         stats.save(temp_file)
         os.replace(temp_file, cache_file) # atomic
     return stats

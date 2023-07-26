@@ -33,7 +33,7 @@ class PickleWidget:
         self.cur_pkl        = None
         self.user_pkl       = ''
         self.recent_pkls    = []
-        self.browse_cache   = dict() # {tuple(path, ...): [dnnlib.EasyDict(), ...], ...}
+        self.browse_cache = {}
         self.browse_refocus = False
         self.load('', ignore_errors=True)
 
@@ -144,8 +144,7 @@ class PickleWidget:
                     if entry.is_file() and pkl_regex.fullmatch(entry.name):
                         items.append(dnnlib.EasyDict(type='pkl', name=entry.name, path=os.path.join(parent, entry.name)))
 
-        items = sorted(items, key=lambda item: (item.name.replace('_', ' '), item.path))
-        return items
+        return sorted(items, key=lambda item: (item.name.replace('_', ' '), item.path))
 
     def resolve_pkl(self, pattern):
         assert isinstance(pattern, str)

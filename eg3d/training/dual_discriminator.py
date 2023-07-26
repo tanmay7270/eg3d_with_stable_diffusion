@@ -72,9 +72,7 @@ class SingleDiscriminator(torch.nn.Module):
             block = getattr(self, f'b{res}')
             x, img = block(x, img, **block_kwargs)
 
-        cmap = None
-        if self.c_dim > 0:
-            cmap = self.mapping(None, c)
+        cmap = self.mapping(None, c) if self.c_dim > 0 else None
         x = self.b4(x, img, cmap)
         return x
 
@@ -237,9 +235,7 @@ class DummyDualDiscriminator(torch.nn.Module):
             block = getattr(self, f'b{res}')
             x, img = block(x, img, **block_kwargs)
 
-        cmap = None
-        if self.c_dim > 0:
-            cmap = self.mapping(None, c)
+        cmap = self.mapping(None, c) if self.c_dim > 0 else None
         x = self.b4(x, img, cmap)
         return x
 

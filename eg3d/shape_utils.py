@@ -87,9 +87,7 @@ def convert_sdf_samples_to_ply(
     for i in range(0, num_verts):
         verts_tuple[i] = tuple(mesh_points[i, :])
 
-    faces_building = []
-    for i in range(0, num_faces):
-        faces_building.append(((faces[i, :].tolist(),)))
+    faces_building = [(faces[i, :].tolist(),) for i in range(0, num_faces)]
     faces_tuple = np.array(faces_building, dtype=[("vertex_indices", "i4", (3,))])
 
     el_verts = plyfile.PlyElement.describe(verts_tuple, "vertex")

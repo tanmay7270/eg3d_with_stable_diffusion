@@ -60,7 +60,7 @@ def download_file(session, file_spec, stats, chunk_size=128, num_attempts=10):
     file_path = file_spec['file_path']
     file_url = file_spec['file_url']
     file_dir = os.path.dirname(file_path)
-    tmp_path = file_path + '.tmp.' + uuid.uuid4().hex
+    tmp_path = f'{file_path}.tmp.{uuid.uuid4().hex}'
     if file_dir:
         os.makedirs(file_dir, exist_ok=True)
 
@@ -124,7 +124,7 @@ def download_file(session, file_spec, stats, chunk_size=128, num_attempts=10):
         stats['files_done'] += 1
 
     # Attempt to clean up any leftover temps.
-    for filename in glob.glob(file_path + '.tmp.*'):
+    for filename in glob.glob(f'{file_path}.tmp.*'):
         try:
             os.remove(filename)
         except:
@@ -137,8 +137,7 @@ def choose_bytes_unit(num_bytes):
     if b < (100 << 0): return 'B', (1 << 0)
     if b < (100 << 10): return 'kB', (1 << 10)
     if b < (100 << 20): return 'MB', (1 << 20)
-    if b < (100 << 30): return 'GB', (1 << 30)
-    return 'TB', (1 << 40)
+    return ('GB', 1 << 30) if b < (100 << 30) else ('TB', 1 << 40)
 
 #----------------------------------------------------------------------------
 
@@ -270,7 +269,7 @@ def recreate_aligned_images_fast(json_data, dst_dir='realign1024x1024', output_s
             # Parse landmarks.
             # pylint: disable=unused-variable
             lm = np.array(item['in_the_wild']['face_landmarks'])
-            lm_chin          = lm[0  : 17]  # left-right
+            lm_chin = lm[:17]
             lm_eyebrow_left  = lm[17 : 22]  # left-right
             lm_eyebrow_right = lm[22 : 27]  # left-right
             lm_nose          = lm[27 : 31]  # top-down
@@ -308,7 +307,7 @@ def recreate_aligned_images_fast(json_data, dst_dir='realign1024x1024', output_s
                 print('\nCannot find source image. Please run "--wilds" before "--align".')
                 return
             img = PIL.Image.open(src_file)
-            
+
             import time
 
             # Shrink.
@@ -319,7 +318,7 @@ def recreate_aligned_images_fast(json_data, dst_dir='realign1024x1024', output_s
                 img = img.resize(rsize, PIL.Image.ANTIALIAS)
                 quad /= shrink
                 qsize /= shrink
-            print("shrink--- %s seconds ---" % (time.time() - start_time))
+            print(f"shrink--- {time.time() - start_time} seconds ---")
 
             # Crop.
             start_time = time.time()
@@ -328,8 +327,8 @@ def recreate_aligned_images_fast(json_data, dst_dir='realign1024x1024', output_s
             crop = (max(crop[0] - border, 0), max(crop[1] - border, 0), min(crop[2] + border, img.size[0]), min(crop[3] + border, img.size[1]))
             if crop[2] - crop[0] < img.size[0] or crop[3] - crop[1] < img.size[1]:
                 img = img.crop(crop)
-                quad -= crop[0:2]
-            print("crop--- %s seconds ---" % (time.time() - start_time))
+                quad -= crop[:2]
+            print(f"crop--- {time.time() - start_time} seconds ---")
 
             # Pad.
             start_time = time.time()
@@ -351,14 +350,14 @@ def recreate_aligned_images_fast(json_data, dst_dir='realign1024x1024', output_s
                 img += (median - img) * np.clip(mask, 0.0, 1.0)
                 img = PIL.Image.fromarray(np.uint8(np.clip(np.rint(img), 0, 255)), 'RGB')
                 quad += pad[:2]
-            print("pad--- %s seconds ---" % (time.time() - start_time))
+            print(f"pad--- {time.time() - start_time} seconds ---")
 
             # Transform.
             start_time = time.time()
             img = img.transform((transform_size, transform_size), PIL.Image.QUAD, (quad + 0.5).flatten(), PIL.Image.BILINEAR)
             if output_size < transform_size:
                 img = img.resize((output_size, output_size), PIL.Image.ANTIALIAS)
-            print("transform--- %s seconds ---" % (time.time() - start_time))
+            print(f"transform--- {time.time() - start_time} seconds ---")
 
             # Save aligned image.
             dst_subdir = os.path.join(dst_dir, '%05d' % (item_idx - item_idx % 1000))

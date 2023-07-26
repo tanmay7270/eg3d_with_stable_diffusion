@@ -60,7 +60,7 @@ def process_image(kwargs):#item_idx, item, dst_dir="realign1500", output_size=15
     # Parse landmarks.
     # pylint: disable=unused-variable
     lm = np.array(item['in_the_wild']['face_landmarks'])
-    lm_chin          = lm[0  : 17]  # left-right
+    lm_chin = lm[:17]
     lm_eyebrow_left  = lm[17 : 22]  # left-right
     lm_eyebrow_right = lm[22 : 27]  # left-right
     lm_nose          = lm[27 : 31]  # top-down
@@ -98,7 +98,7 @@ def process_image(kwargs):#item_idx, item, dst_dir="realign1500", output_size=15
         print('\nCannot find source image. Please run "--wilds" before "--align".')
         return
     img = PIL.Image.open(src_file)
-    
+
     import time
 
     # Shrink.
@@ -118,7 +118,7 @@ def process_image(kwargs):#item_idx, item, dst_dir="realign1500", output_size=15
     crop = (max(crop[0] - border, 0), max(crop[1] - border, 0), min(crop[2] + border, img.size[0]), min(crop[3] + border, img.size[1]))
     if crop[2] - crop[0] < img.size[0] or crop[3] - crop[1] < img.size[1]:
         img = img.crop(crop)
-        quad -= crop[0:2]
+        quad -= crop[:2]
     # print("crop--- %s seconds ---" % (time.time() - start_time))
 
     # Pad.

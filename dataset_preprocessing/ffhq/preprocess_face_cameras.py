@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     with open(camera_dataset_file, "r") as f:
         cameras = json.load(f)
-        
+
     dataset = {'labels':[]}
 
     max_images = args.max_images if args.max_images is not None else len(cameras)
@@ -89,7 +89,7 @@ if __name__ == '__main__':
             assert False, "invalid mode"
         intrinsics = fix_intrinsics(intrinsics)
         label = np.concatenate([pose.reshape(-1), intrinsics.reshape(-1)]).tolist()
-            
+
         image_path = os.path.join(args.source, filename)
         img = Image.open(image_path)
 
@@ -102,9 +102,9 @@ if __name__ == '__main__':
         flipped_pose = flip_yaw(pose)
         label = np.concatenate([flipped_pose.reshape(-1), intrinsics.reshape(-1)]).tolist()
         base, ext = filename.split('.')[0], '.' + filename.split('.')[1]
-        flipped_filename = base + '_mirror' + ext
+        flipped_filename = f'{base}_mirror{ext}'
         dataset["labels"].append([flipped_filename, label])
         flipped_img.save(os.path.join(args.dest, flipped_filename))
-        
+
     with open(os.path.join(args.dest, 'dataset.json'), "w") as f:
         json.dump(dataset, f)

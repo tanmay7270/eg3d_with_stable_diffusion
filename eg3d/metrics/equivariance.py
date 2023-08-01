@@ -261,7 +261,7 @@ def compute_equivariance_metrics(opts, num_samples, batch_size, translate_max=0.
     if opts.num_gpus > 1:
         torch.distributed.all_reduce(sums)
     sums = sums.cpu()
-    mses = sums[0::2] / sums[1::2]
+    mses = sums[::2] / sums[1::2]
     psnrs = np.log10(2) * 20 - mses.log10() * 10
     psnrs = tuple(psnrs.numpy())
     return psnrs[0] if len(psnrs) == 1 else psnrs

@@ -31,7 +31,7 @@ from tqdm import tqdm
 #----------------------------------------------------------------------------
 
 def error(msg):
-    print('Error: ' + msg)
+    print(f'Error: {msg}')
     sys.exit(1)
 
 #----------------------------------------------------------------------------
@@ -44,15 +44,13 @@ def parse_tuple(s: str) -> Tuple[int, int]:
         '0,1' returns (0,1)
     '''
     if m := re.match(r'^(\d+)[x,](\d+)$', s):
-        return (int(m.group(1)), int(m.group(2)))
+        return int(m[1]), int(m[2])
     raise ValueError(f'cannot parse tuple {s}')
 
 #----------------------------------------------------------------------------
 
 def maybe_min(a: int, b: Optional[int]) -> int:
-    if b is not None:
-        return min(a, b)
-    return a
+    return min(a, b) if b is not None else a
 
 #----------------------------------------------------------------------------
 
@@ -76,11 +74,7 @@ def open_image_folder(source_dir, *, max_images: Optional[int]):
     if os.path.isfile(meta_fname):
         with open(meta_fname, 'r') as file:
             labels = json.load(file)['labels']
-            if labels is not None:
-                labels = { x[0]: x[1] for x in labels }
-            else:
-                labels = {}
-
+            labels = { x[0]: x[1] for x in labels } if labels is not None else {}
     max_idx = maybe_min(len(input_images), max_images)
 
     def iterate_images():
@@ -91,6 +85,7 @@ def open_image_folder(source_dir, *, max_images: Optional[int]):
             yield dict(img=img, label=labels.get(arch_fname))
             if idx >= max_idx-1:
                 break
+
     return max_idx, iterate_images()
 
 #----------------------------------------------------------------------------
@@ -104,11 +99,7 @@ def open_image_zip(source, *, max_images: Optional[int]):
         if 'dataset.json' in z.namelist():
             with z.open('dataset.json', 'r') as file:
                 labels = json.load(file)['labels']
-                if labels is not None:
-                    labels = { x[0]: x[1] for x in labels }
-                else:
-                    labels = {}
-
+                labels = { x[0]: x[1] for x in labels } if labels is not None else {}
     max_idx = maybe_min(len(input_images), max_images)
 
     def iterate_images():
@@ -120,6 +111,7 @@ def open_image_zip(source, *, max_images: Optional[int]):
                 yield dict(img=img, label=labels.get(fname))
                 if idx >= max_idx-1:
                     break
+
     return max_idx, iterate_images()
 
 #----------------------------------------------------------------------------
@@ -255,11 +247,11 @@ def make_transform(
         return functools.partial(scale, output_width, output_height)
     if transform == 'center-crop':
         if (output_width is None) or (output_height is None):
-            error ('must specify --resolution=WxH when using ' + transform + 'transform')
+            error(f'must specify --resolution=WxH when using {transform}transform')
         return functools.partial(center_crop, output_width, output_height)
     if transform == 'center-crop-wide':
         if (output_width is None) or (output_height is None):
-            error ('must specify --resolution=WxH when using ' + transform + ' transform')
+            error(f'must specify --resolution=WxH when using {transform} transform')
         return functools.partial(center_crop_wide, output_width, output_height)
     assert False, 'unknown transform'
 
@@ -393,7 +385,7 @@ def convert_dataset(
 
     PIL.Image.init() # type: ignore
 
-    if dest == '':
+    if not dest:
         ctx.fail('--dest output filename or directory must not be an empty string')
 
     num_files, input_iter = open_dataset(source, max_images=max_images)

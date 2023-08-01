@@ -88,8 +88,7 @@ class PPLSampler(torch.nn.Module):
 
         # Evaluate differential LPIPS.
         lpips_t0, lpips_t1 = self.vgg16(img, resize_images=False, return_lpips=True).chunk(2)
-        dist = (lpips_t0 - lpips_t1).square().sum(1) / self.epsilon ** 2
-        return dist
+        return (lpips_t0 - lpips_t1).square().sum(1) / self.epsilon ** 2
 
 #----------------------------------------------------------------------------
 

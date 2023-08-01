@@ -41,7 +41,7 @@ def parse_range(s: Union[str, List]) -> List[int]:
     range_re = re.compile(r'^(\d+)-(\d+)$')
     for p in s.split(','):
         if m := range_re.match(p):
-            ranges.extend(range(int(m.group(1)), int(m.group(2))+1))
+            ranges.extend(range(int(m[1]), int(m[2]) + 1))
         else:
             ranges.append(int(p))
     return ranges
@@ -137,7 +137,7 @@ def generate_images(
         --network=ffhq-rebalanced-128.pkl
     """
 
-    print('Loading networks from "%s"...' % network_pkl)
+    print(f'Loading networks from "{network_pkl}"...')
     device = torch.device('cuda')
     with dnnlib.util.open_url(network_pkl) as f:
         G = legacy.load_network_pkl(f)['G_ema'].to(device) # type: ignore

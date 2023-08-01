@@ -145,5 +145,7 @@ def FOV_to_intrinsics(fov_degrees, device='cpu'):
     """
 
     focal_length = float(1 / (math.tan(fov_degrees * 3.14159 / 360) * 1.414))
-    intrinsics = torch.tensor([[focal_length, 0, 0.5], [0, focal_length, 0.5], [0, 0, 1]], device=device)
-    return intrinsics
+    return torch.tensor(
+        [[focal_length, 0, 0.5], [0, focal_length, 0.5], [0, 0, 1]],
+        device=device,
+    )

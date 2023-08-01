@@ -40,7 +40,7 @@ class PerformanceWidget:
                 imgui.plot_lines('##gui_times', array.array('f', self.gui_times), scale_min=0)
             imgui.same_line(viz.label_w + viz.font_size * 9)
             t = [x for x in self.gui_times if x > 0]
-            t = np.mean(t) if len(t) > 0 else 0
+            t = np.mean(t) if t else 0
             imgui.text(f'{t*1e3:.1f} ms' if t > 0 else 'N/A')
             imgui.same_line(viz.label_w + viz.font_size * 14)
             imgui.text(f'{1/t:.1f} FPS' if t > 0 else 'N/A')
@@ -58,7 +58,7 @@ class PerformanceWidget:
                 imgui.plot_lines('##render_times', array.array('f', self.render_times), scale_min=0)
             imgui.same_line(viz.label_w + viz.font_size * 9)
             t = [x for x in self.render_times if x > 0]
-            t = np.mean(t) if len(t) > 0 else 0
+            t = np.mean(t) if t else 0
             imgui.text(f'{t*1e3:.1f} ms' if t > 0 else 'N/A')
             imgui.same_line(viz.label_w + viz.font_size * 14)
             imgui.text(f'{1/t:.1f} FPS' if t > 0 else 'N/A')

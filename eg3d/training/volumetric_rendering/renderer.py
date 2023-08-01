@@ -61,8 +61,17 @@ def sample_from_planes(plane_axes, plane_features, coordinates, mode='bilinear',
     coordinates = (2/box_warp) * coordinates # TODO: add specific box bounds
 
     projected_coordinates = project_onto_planes(plane_axes, coordinates).unsqueeze(1)
-    output_features = torch.nn.functional.grid_sample(plane_features, projected_coordinates.float(), mode=mode, padding_mode=padding_mode, align_corners=False).permute(0, 3, 2, 1).reshape(N, n_planes, M, C)
-    return output_features
+    return (
+        torch.nn.functional.grid_sample(
+            plane_features,
+            projected_coordinates.float(),
+            mode=mode,
+            padding_mode=padding_mode,
+            align_corners=False,
+        )
+        .permute(0, 3, 2, 1)
+        .reshape(N, n_planes, M, C)
+    )
 
 def sample_from_3dgrid(grid, coordinates):
     """
@@ -179,15 +188,14 @@ class ImportanceRenderer(torch.nn.Module):
             depth_delta = 1/(depth_resolution - 1)
             depths_coarse += torch.rand_like(depths_coarse) * depth_delta
             depths_coarse = 1./(1./ray_start * (1. - depths_coarse) + 1./ray_end * depths_coarse)
+        elif type(ray_start) == torch.Tensor:
+            depths_coarse = math_utils.linspace(ray_start, ray_end, depth_resolution).permute(1,2,0,3)
+            depth_delta = (ray_end - ray_start) / (depth_resolution - 1)
+            depths_coarse += torch.rand_like(depths_coarse) * depth_delta[..., None]
         else:
-            if type(ray_start) == torch.Tensor:
-                depths_coarse = math_utils.linspace(ray_start, ray_end, depth_resolution).permute(1,2,0,3)
-                depth_delta = (ray_end - ray_start) / (depth_resolution - 1)
-                depths_coarse += torch.rand_like(depths_coarse) * depth_delta[..., None]
-            else:
-                depths_coarse = torch.linspace(ray_start, ray_end, depth_resolution, device=ray_origins.device).reshape(1, 1, depth_resolution, 1).repeat(N, M, 1, 1)
-                depth_delta = (ray_end - ray_start)/(depth_resolution - 1)
-                depths_coarse += torch.rand_like(depths_coarse) * depth_delta
+            depths_coarse = torch.linspace(ray_start, ray_end, depth_resolution, device=ray_origins.device).reshape(1, 1, depth_resolution, 1).repeat(N, M, 1, 1)
+            depth_delta = (ray_end - ray_start)/(depth_resolution - 1)
+            depths_coarse += torch.rand_like(depths_coarse) * depth_delta
 
         return depths_coarse
 
@@ -228,8 +236,6 @@ class ImportanceRenderer(torch.nn.Module):
         pdf = weights / torch.sum(weights, -1, keepdim=True) # (N_rays, N_samples_)
         cdf = torch.cumsum(pdf, -1) # (N_rays, N_samples), cumulative distribution function
         cdf = torch.cat([torch.zeros_like(cdf[: ,:1]), cdf], -1)  # (N_rays, N_samples_+1)
-                                                                   # padded to 0~1 inclusive
-
         if det:
             u = torch.linspace(0, 1, N_importance, device=bins.device)
             u = u.expand(N_rays, N_importance)
@@ -247,7 +253,4 @@ class ImportanceRenderer(torch.nn.Module):
 
         denom = cdf_g[...,1]-cdf_g[...,0]
         denom[denom<eps] = 1 # denom equals 0 means a bin has weight 0, in which case it will not be sampled
-                             # anyway, therefore any value for it is fine (set to 1 here)
-
-        samples = bins_g[...,0] + (u-cdf_g[...,0])/denom * (bins_g[...,1]-bins_g[...,0])
-        return samples
+        return bins_g[...,0] + (u-cdf_g[...,0])/denom * (bins_g[...,1]-bins_g[...,0])

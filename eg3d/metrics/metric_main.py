@@ -10,6 +10,7 @@
 
 """Main API for computing and reporting quality metrics."""
 
+
 import os
 import time
 import json
@@ -26,7 +27,7 @@ from . import equivariance
 
 #----------------------------------------------------------------------------
 
-_metric_dict = dict() # name => fn
+_metric_dict = {}
 
 def register_metric(fn):
     assert callable(fn)

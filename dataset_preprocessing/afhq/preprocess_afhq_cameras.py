@@ -20,13 +20,14 @@ def gen_pose(rot_mat):
     rot_mat = np.array(rot_mat).copy()
     forward = rot_mat[:, 2]
     translation = forward * -2.7
-    pose = np.array([
-        [rot_mat[0, 0], rot_mat[0, 1], rot_mat[0, 2], translation[0]],
-        [rot_mat[1, 0], rot_mat[1, 1], rot_mat[1, 2], translation[1]],
-        [rot_mat[2, 0], rot_mat[2, 1], rot_mat[2, 2], translation[2]],
-        [0, 0, 0, 1],
-    ])
-    return pose
+    return np.array(
+        [
+            [rot_mat[0, 0], rot_mat[0, 1], rot_mat[0, 2], translation[0]],
+            [rot_mat[1, 0], rot_mat[1, 1], rot_mat[1, 2], translation[1]],
+            [rot_mat[2, 0], rot_mat[2, 1], rot_mat[2, 2], translation[2]],
+            [0, 0, 0, 1],
+        ]
+    )
 
 def flip_yaw(pose_matrix):
     flipped = pose_matrix.copy()
@@ -47,7 +48,7 @@ camera_dataset_file = os.path.join(args.source, 'cameras.json')
 
 with open(camera_dataset_file, "r") as f:
     cameras = json.load(f)
-    
+
 dataset = {'labels':[]}
 max_images = args.max_images if args.max_images is not None else len(cameras)
 for i, filename in tqdm(enumerate(cameras), total=max_images):
@@ -61,8 +62,8 @@ for i, filename in tqdm(enumerate(cameras), total=max_images):
         [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]
     ])
     label = np.concatenate([pose.reshape(-1), intrinsics.reshape(-1)]).tolist()
-        
-    filename = filename + '.png'
+
+    filename = f'{filename}.png'
     image_path = os.path.join(args.source, filename)
     img = Image.open(image_path)
     dataset["labels"].append([filename, label])
@@ -71,9 +72,9 @@ for i, filename in tqdm(enumerate(cameras), total=max_images):
     flipped_pose = flip_yaw(pose)
     label = np.concatenate([flipped_pose.reshape(-1), intrinsics.reshape(-1)]).tolist()
     base, ext = filename.split('.')[0], '.' + filename.split('.')[1]
-    flipped_filename = base + '_mirror' + ext
+    flipped_filename = f'{base}_mirror{ext}'
     dataset["labels"].append([flipped_filename, label])
     flipped_img.save(os.path.join(args.dest, flipped_filename))
-    
+
 with open(os.path.join(args.dest, 'dataset.json'), "w") as f:
     json.dump(dataset, f)
